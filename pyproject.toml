@@ -1,0 +1,14 @@
+[project]
+name = "localembed"
+version = "0.1.0"
+description = "LocalEmbed"
+readme = "README.md"
+authors = [
+    { name = "Heshinth P", email = "heshinth@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]<1.0.0,>=0.116.1",
+    "httpx<1.0.0,>=0.28.1",
+    "load-dotenv<1.0.0,>=0.1.0"
+]
