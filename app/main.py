@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from api.router import router
+from app.api.router import router
 
 app = FastAPI(
     title="LocalEmbed",

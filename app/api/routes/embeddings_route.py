@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from openai.types.embedding_create_params import EmbeddingCreateParams
 from openai.types.create_embedding_response import CreateEmbeddingResponse
 
-from services.embedder import embed_text
+from app.services.embedder import embed_text
 
 router = APIRouter()
 

@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from api.routes import embeddings_route, models_route
+from app.api.routes import embeddings_route, models_route
 
 
 router = APIRouter(prefix="/v1")
