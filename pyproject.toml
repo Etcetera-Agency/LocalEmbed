@@ -12,6 +12,5 @@ dependencies = [
     "fastembed>=0.8.0",
     "httpx<1.0.0,>=0.28.1",
     "load-dotenv<1.0.0,>=0.1.0",
-    "openai>=2.30.0",
     "pydantic>=2.12.5",
 ]
