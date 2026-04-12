@@ -28,7 +28,7 @@ def embed_text(
         vectors = [vec.tolist() for vec in model.embed(texts)]
 
         # token_count returns an iterator of ints (tokens per document), so we sum them
-        total_tokens = sum(model.token_count(texts))
+        total_tokens = model.token_count(texts)
 
         return EmbeddingResult(
             vectors=vectors, prompt_tokens=total_tokens, model_used=model_id
