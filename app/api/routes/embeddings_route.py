@@ -1,6 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from app.api.schemas.create_embedding_request import CreateEmbeddingRequest
-from app.api.schemas.create_embedding_response import CreateEmbeddingResponse
+from app.api.schemas.create_embedding_response import (
+    CreateEmbeddingResponse,
+    Embedding,
+    Usage,
+)
 
 from app.services.embedder import embed_text
 from app.services.model_registery import validate_model_id
@@ -9,7 +13,12 @@ router = APIRouter()
 
 
 @router.post("/", response_model=CreateEmbeddingResponse)
-def create_embedding(params: CreateEmbeddingRequest):
+def create_embedding(params: CreateEmbeddingRequest) -> CreateEmbeddingResponse:
+    """Generate vector embeddings for the provided text inputs.
+
+    Accepts either a single string or a list of strings.
+    Returns embedding vectors compatible with OpenAI's API format.
+    """
     raw_input = params.input
 
     if isinstance(raw_input, str):
@@ -26,15 +35,15 @@ def create_embedding(params: CreateEmbeddingRequest):
 
     result = embed_text(texts, model_id=model_id)
 
-    return {
-        "object": "list",
-        "data": [
-            {"object": "embedding", "index": i, "embedding": v}
+    return CreateEmbeddingResponse(
+        object="list",
+        data=[
+            Embedding(object="embedding", index=i, embedding=v)
             for i, v in enumerate(result.vectors)
         ],
-        "model": result.model_used,
-        "usage": {
-            "prompt_tokens": result.prompt_tokens,
-            "total_tokens": result.prompt_tokens,
-        },
-    }
+        model=result.model_used,
+        usage=Usage(
+            prompt_tokens=result.prompt_tokens,
+            total_tokens=result.prompt_tokens,
+        ),
+    )

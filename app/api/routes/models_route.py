@@ -7,6 +7,8 @@ router = APIRouter()
 
 @router.get("/", response_model=ModelListResponse)
 def list_models():
+    """List all available embedding models with their metadata."""
+
     dense_model_data = get_dense_models()
 
     return ModelListResponse(object="list", data=dense_model_data)
