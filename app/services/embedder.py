@@ -4,7 +4,22 @@ from fastembed import TextEmbedding
 from loguru import logger
 from app.config import settings
 
-DEFAULT_EMBEDDING_MODEL = settings.DEFAULT_EMBEDDING_MODEL
+model_cache: dict[str, TextEmbedding] = {}
+
+
+def get_model(model_id: str) -> TextEmbedding:
+    """Fetch the model from cache, or load it if not present."""
+
+    if model_id not in model_cache:
+        logger.info(f"Loading embedding model into memory: {model_id}")
+        model_cache[model_id] = TextEmbedding(model_id)
+    return model_cache[model_id]
+
+
+def preload_default_model():
+    """Hook to pre-load the default model during startup."""
+    logger.info("Preloading default embedding model...")
+    get_model(settings.DEFAULT_EMBEDDING_MODEL)
 
 
 class EmbeddingResult(BaseModel):
@@ -17,10 +32,10 @@ class EmbeddingResult(BaseModel):
 
 
 def embed_text(
-    texts: Iterable[str] | str, model_id: str = DEFAULT_EMBEDDING_MODEL
+    texts: Iterable[str] | str, model_id: str = settings.DEFAULT_EMBEDDING_MODEL
 ) -> EmbeddingResult:
     try:
-        model = TextEmbedding(model_id)
+        model = get_model(model_id)
     except Exception as e:
         logger.error(f"Error initializing embedding model: {e}")
         raise
