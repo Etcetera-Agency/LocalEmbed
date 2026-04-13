@@ -1,20 +1,34 @@
-FROM ghcr.io/astral-sh/uv:python3.12-trixie-slim
+# --- Stage 1: Build the environment ---
+FROM ghcr.io/astral-sh/uv:python3.12-trixie-slim AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Set the working directory
 WORKDIR /app
 
-# Copy project specification files first (for better Docker layer caching)
 COPY pyproject.toml uv.lock README.md ./
 
-# Install the project and dependencies globally in the container using uv
-RUN uv sync  --locked --no-cache --no-dev --no-install-project
+# We generate a standalone virtual environment
+RUN uv sync --locked --no-cache --no-dev --no-install-project
 
-# Copy the rest of the application code
+# --- Stage 2: Final Runtime Image ---
+FROM python:3.12-slim-trixie
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Copy only the compiled virtual environment from the builder
+COPY --from=builder /app/.venv /app/.venv
+
+# Copy your application code
 COPY app ./app
+
+# Add the virtual environment to PATH so it works natively
+ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE 8000
 
-CMD ["/app/.venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Notice we can just run uvicorn natively since we added the venv to PATH
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
