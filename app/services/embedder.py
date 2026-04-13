@@ -1,6 +1,7 @@
 from typing import Iterable
 from pydantic import BaseModel
 from fastembed import TextEmbedding
+from loguru import logger
 
 DEFAULT_EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
 
@@ -20,7 +21,7 @@ def embed_text(
     try:
         model = TextEmbedding(model_id)
     except Exception as e:
-        print(f"Error initializing embedding model: {e}")
+        logger.error(f"Error initializing embedding model: {e}")
         raise
 
     try:
@@ -34,5 +35,5 @@ def embed_text(
             vectors=vectors, prompt_tokens=total_tokens, model_used=model_id
         )
     except Exception as e:
-        print(f"Error generating embeddings: {e}")
+        logger.error(f"Error generating embeddings: {e}")
         raise

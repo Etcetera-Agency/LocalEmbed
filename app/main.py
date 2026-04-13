@@ -1,4 +1,7 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from loguru import logger
+from app.logger import setup_logger
 from app.api.router import router
 
 description = """
@@ -11,11 +14,22 @@ description = """
 """
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Perform any startup tasks.
+    setup_logger()
+    logger.info("Starting up LocalEmbed API...")
+    yield
+    # Perform any shutdown tasks here (e.g., clean up resources)
+    logger.info("Shutting down LocalEmbed API...")
+
+
 app = FastAPI(
     title="LocalEmbed",
     summary="A fast, local text embedding service using fastembed.",
     description=description,
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 

@@ -1,10 +1,12 @@
 from fastembed import TextEmbedding
+from loguru import logger
 from app.api.schemas.list_models import ModelInfo, ModelType
 
 try:
     dense_models = TextEmbedding.list_supported_models()
+    logger.info(f"Successfully loaded {len(dense_models)} supported models")
 except Exception as e:
-    print(f"Error fetching supported models: {e}")
+    logger.error(f"Error fetching supported models: {e}")
     dense_models = []
 
 

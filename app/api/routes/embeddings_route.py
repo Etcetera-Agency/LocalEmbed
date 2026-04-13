@@ -8,6 +8,7 @@ from app.api.schemas.create_embedding_response import (
 
 from app.services.embedder import embed_text
 from app.services.model_registery import validate_model_id
+from loguru import logger
 
 router = APIRouter()
 
@@ -31,9 +32,16 @@ def create_embedding(params: CreateEmbeddingRequest) -> CreateEmbeddingResponse:
         )
     model_id = params.model
     if not validate_model_id(model_id):
+        logger.warning(f"Embedding request rejected: Invalid model_id '{model_id}'")
         raise HTTPException(status_code=404, detail=f"Invalid model_id: {model_id}")
 
+    logger.info(
+        f"Processing embedding request: {len(texts)} document(s) with model '{model_id}'"
+    )
+
     result = embed_text(texts, model_id=model_id)
+
+    logger.info(f"Embedding successful: generated {result.prompt_tokens} tokens")
 
     return CreateEmbeddingResponse(
         object="list",
