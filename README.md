@@ -4,12 +4,16 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue.svg?logo=python)
 ![Docker Image Version](https://img.shields.io/docker/v/heshinth/localembed?logo=docker)
 
-A fast and simple local API for generating text embeddings.
+A lightweight text embedding API designed as a drop-in replacement for the OpenAI embeddings endpoint. 
+
+Built with FastAPI and `fastembed`, LocalEmbed is optimized for running local document processing and vector pipelines securely on your own infrastructure.
 
 ## Features
-- Generate text embeddings locally without external API dependencies.
-- List available embedding models.
-- Containerized with Docker for easy deployment.
+
+* **OpenAI SDK Compatible:** Natively mirrors the `/v1/embeddings` schema. Point your existing OpenAI client to `localhost` and it just works.
+* **Privacy First:** 100% local execution. No data ever leaves your network.
+* **Zero-Latency Starts:** Automatically pre-loads your default model into memory on server boot.
+* **Container-Native:** Multi-stage Docker build utilizing `uv` for a minimal, highly optimized runtime footprint.
 
 ---
 

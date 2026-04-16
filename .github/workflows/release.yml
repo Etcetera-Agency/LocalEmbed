@@ -73,6 +73,3 @@ jobs:
                       ```bash
                       docker run -d --name localembed -p 8000:8000 heshinth/localembed:latest
                       ```
-
-
-                      **Full Changelog:** https://github.com/${{ github.repository }}/commits/${{ github.ref_name }}
