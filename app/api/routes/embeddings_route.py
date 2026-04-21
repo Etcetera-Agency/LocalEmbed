@@ -13,7 +13,7 @@ from loguru import logger
 router = APIRouter()
 
 
-@router.post("/", response_model=CreateEmbeddingResponse)
+@router.post("", response_model=CreateEmbeddingResponse)
 def create_embedding(params: CreateEmbeddingRequest) -> CreateEmbeddingResponse:
     """Generate vector embeddings for the provided text inputs.
 
