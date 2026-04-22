@@ -47,7 +47,7 @@ def embed_text(
 
     try:
         # model.embed natively batches an iterable of documents giving an iterable of numpy arrays
-        vectors = [vec.tolist() for vec in model.embed(texts,batch_size=settings.EMBEDDING_BATCH_SIZE)]
+        vectors = [vec.tolist() for vec in model.embed(texts,batch_size=settings.BATCH_SIZE)]
 
         # token_count returns an iterator of ints (tokens per document), so we sum them
         total_tokens = model.token_count(texts)
