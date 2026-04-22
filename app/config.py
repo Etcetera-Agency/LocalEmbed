@@ -15,5 +15,8 @@ class Settings(BaseSettings):
     DEFAULT_EMBEDDING_MODEL: str = "BAAI/bge-small-en-v1.5"
     """The default embedding model to use."""
 
+    EMBEDDING_THREADS: int = 8
+    """Number of threads to use for embedding generation. Adjust based on your CPU capabilities."""
+
 
 settings = Settings()
