@@ -1,6 +1,6 @@
 [project]
 name = "localembed"
-version = "0.1.1"
+version = "0.1.2"
 description = "A fast and simple local API for generating text embeddings."
 readme = "README.md"
 authors = [

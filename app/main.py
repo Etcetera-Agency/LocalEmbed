@@ -34,7 +34,7 @@ app = FastAPI(
     title="LocalEmbed",
     summary="A fast, local text embedding service using fastembed.",
     description=description,
-    version="0.1.1",
+    version="0.1.2",
     lifespan=lifespan,
 )
 
