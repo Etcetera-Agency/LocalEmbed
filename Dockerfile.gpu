@@ -23,6 +23,9 @@ COPY app ./app
 # Run a final sync to install your actual project code
 RUN uv sync --locked --no-cache --no-dev --extra gpu
 
+# Signal the app to use GPU logic
+ENV USE_GPU=True
+
 EXPOSE 8000
 
 # Put the virtual environment on the PATH so it works natively

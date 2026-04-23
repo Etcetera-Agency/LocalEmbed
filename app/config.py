@@ -9,6 +9,9 @@ class Settings(BaseSettings):
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
+    USE_GPU: bool = False
+    """Toggle to enable CUDA Execution Provider logic"""
+
     HF_TOKEN: SecretStr | None = None
     """Hugging Face API token. Optional"""
 
