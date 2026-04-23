@@ -3,6 +3,8 @@
 ![GitHub License](https://img.shields.io/github/license/heshinth/LocalEmbed?cacheSeconds=20)
 ![Python](https://img.shields.io/badge/python-3.12-blue.svg?logo=python)
 ![Docker Image Version](https://img.shields.io/docker/v/heshinth/localembed?logo=docker)
+![Docker Pulls](https://img.shields.io/docker/pulls/heshinth/localembed?logo=docker)
+
 
 A lightweight text embedding API designed as a drop-in replacement for the OpenAI embeddings endpoint. 
 
