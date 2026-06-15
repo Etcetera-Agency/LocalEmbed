@@ -5,9 +5,12 @@ from pydantic import BaseModel
 from fastembed import TextEmbedding
 from loguru import logger
 from app.config import settings
+from app.services.custom_models import register_custom_models
 
 InputType = Literal["passage", "query"]
 SUPPORTED_INPUT_TYPES: set[str] = {"passage", "query"}
+
+register_custom_models()
 
 model_cache: OrderedDict[str, TextEmbedding] = OrderedDict()
 model_cache_lock = RLock()
@@ -117,7 +120,9 @@ def _apply_e5_prefix(text: str, input_type: InputType) -> str:
     return f"{input_type}: {text}"
 
 
-def _prepare_texts(texts: Iterable[str] | str, model_id: str, input_type: InputType):
+def _prepare_texts(
+    texts: Iterable[str] | str, model_id: str, input_type: InputType
+) -> Iterable[str] | str:
     if isinstance(texts, str):
         return _apply_e5_prefix(texts, input_type) if _is_e5_model(model_id) else texts
 
@@ -139,7 +144,9 @@ def embed_text(
         raise
 
     try:
-        prepared_texts = _prepare_texts(texts, model_id, input_type or _default_input_type())
+        prepared_texts = _prepare_texts(
+            texts, model_id, input_type or _default_input_type()
+        )
 
         # model.embed natively batches an iterable of documents giving an iterable of numpy arrays
         vectors = [

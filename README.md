@@ -166,8 +166,9 @@ or:
 }
 ```
 
-Note: `intfloat/multilingual-e5-small` is not currently exposed by FastEmbed.
-Use `/v1/models` to confirm what the running image supports.
+This fork registers `intfloat/multilingual-e5-small` from
+`Teradata/multilingual-e5-small` using its ONNX int8 model. Use `/v1/models` to
+confirm the running image exposes it.
 
 ## Usage with OpenAI SDK
 
