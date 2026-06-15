@@ -137,6 +137,38 @@ You can view the full list of supported models in the [FastEmbed Documentation](
 GET http://localhost:8000/v1/models
 ```
 
+### E5 Prefixes
+
+E5 models expect prefixed input:
+
+- stored text: `passage: ...`
+- search queries: `query: ...`
+
+LocalEmbed adds the prefix for E5 models when the input is not already prefixed.
+Default is `DEFAULT_INPUT_TYPE=passage`.
+
+To force query embeddings without changing clients globally:
+
+```json
+{
+  "model": "intfloat/multilingual-e5-large:query",
+  "input": "де знайти договір?"
+}
+```
+
+or:
+
+```json
+{
+  "model": "intfloat/multilingual-e5-large",
+  "input_type": "query",
+  "input": "де знайти договір?"
+}
+```
+
+Note: `intfloat/multilingual-e5-small` is not currently exposed by FastEmbed.
+Use `/v1/models` to confirm what the running image supports.
+
 ## Usage with OpenAI SDK
 
 Since the `/v1/embeddings` endpoint is OpenAI API compatible, you can easily use the official `openai` Python package to interact with it just like the real OpenAI API:

@@ -6,7 +6,7 @@ from app.api.schemas.create_embedding_response import (
     Usage,
 )
 
-from app.services.embedder import embed_text
+from app.services.embedder import embed_text, resolve_model_request
 from app.services.model_registery import validate_model_id
 from loguru import logger
 
@@ -30,16 +30,19 @@ def create_embedding(params: CreateEmbeddingRequest) -> CreateEmbeddingResponse:
         raise HTTPException(
             status_code=400, detail="input must be a string or list of strings"
         )
-    model_id = params.model
+    try:
+        model_id, input_type = resolve_model_request(params.model, params.input_type)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
     if not validate_model_id(model_id):
-        logger.warning(f"Embedding request rejected: Invalid model_id '{model_id}'")
-        raise HTTPException(status_code=404, detail=f"Invalid model_id: {model_id}")
+        logger.warning(f"Embedding request rejected: Invalid model_id '{params.model}'")
+        raise HTTPException(status_code=404, detail=f"Invalid model_id: {params.model}")
 
     logger.info(
         f"Processing embedding request: {len(texts)} document(s) with model '{model_id}'"
     )
 
-    result = embed_text(texts, model_id=model_id)
+    result = embed_text(texts, model_id=model_id, input_type=input_type)
 
     logger.info(f"Embedding successful: generated {result.prompt_tokens} tokens")
 

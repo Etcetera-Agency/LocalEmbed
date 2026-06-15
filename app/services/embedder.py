@@ -1,10 +1,13 @@
 from collections import OrderedDict
 from threading import RLock
-from typing import Iterable
+from typing import Iterable, Literal
 from pydantic import BaseModel
 from fastembed import TextEmbedding
 from loguru import logger
 from app.config import settings
+
+InputType = Literal["passage", "query"]
+SUPPORTED_INPUT_TYPES: set[str] = {"passage", "query"}
 
 model_cache: OrderedDict[str, TextEmbedding] = OrderedDict()
 model_cache_lock = RLock()
@@ -68,8 +71,66 @@ class EmbeddingResult(BaseModel):
     """Model used to generate the embeddings"""
 
 
+def resolve_model_request(
+    requested_model: str, requested_input_type: InputType | None = None
+) -> tuple[str, InputType]:
+    """Resolve optional model suffix aliases like model:query or model:passage."""
+
+    model_id = requested_model
+    input_type = requested_input_type or _default_input_type()
+
+    for separator in (":", "#"):
+        if separator not in requested_model:
+            continue
+        maybe_model, maybe_input_type = requested_model.rsplit(separator, 1)
+        if maybe_input_type in SUPPORTED_INPUT_TYPES:
+            model_id = maybe_model
+            input_type = maybe_input_type
+            break
+
+    if input_type not in SUPPORTED_INPUT_TYPES:
+        raise ValueError(
+            f"Invalid input_type '{input_type}'. Expected one of {sorted(SUPPORTED_INPUT_TYPES)}"
+        )
+
+    return model_id, input_type
+
+
+def _default_input_type() -> InputType:
+    default_input_type = settings.DEFAULT_INPUT_TYPE
+    if default_input_type not in SUPPORTED_INPUT_TYPES:
+        raise ValueError(
+            f"Invalid DEFAULT_INPUT_TYPE '{default_input_type}'. "
+            f"Expected one of {sorted(SUPPORTED_INPUT_TYPES)}"
+        )
+    return default_input_type
+
+
+def _is_e5_model(model_id: str) -> bool:
+    return "e5" in model_id.lower()
+
+
+def _apply_e5_prefix(text: str, input_type: InputType) -> str:
+    stripped = text.lstrip()
+    if stripped.startswith("query:") or stripped.startswith("passage:"):
+        return text
+    return f"{input_type}: {text}"
+
+
+def _prepare_texts(texts: Iterable[str] | str, model_id: str, input_type: InputType):
+    if isinstance(texts, str):
+        return _apply_e5_prefix(texts, input_type) if _is_e5_model(model_id) else texts
+
+    if _is_e5_model(model_id):
+        return [_apply_e5_prefix(text, input_type) for text in texts]
+
+    return texts
+
+
 def embed_text(
-    texts: Iterable[str] | str, model_id: str = settings.DEFAULT_EMBEDDING_MODEL
+    texts: Iterable[str] | str,
+    model_id: str = settings.DEFAULT_EMBEDDING_MODEL,
+    input_type: InputType | None = None,
 ) -> EmbeddingResult:
     try:
         model = get_model(model_id)
@@ -78,13 +139,16 @@ def embed_text(
         raise
 
     try:
+        prepared_texts = _prepare_texts(texts, model_id, input_type or _default_input_type())
+
         # model.embed natively batches an iterable of documents giving an iterable of numpy arrays
         vectors = [
-            vec.tolist() for vec in model.embed(texts, batch_size=settings.BATCH_SIZE)
+            vec.tolist()
+            for vec in model.embed(prepared_texts, batch_size=settings.BATCH_SIZE)
         ]
 
         # token_count returns a single int for total tokens
-        total_tokens = model.token_count(texts)
+        total_tokens = model.token_count(prepared_texts)
 
         return EmbeddingResult(
             vectors=vectors, prompt_tokens=total_tokens, model_used=model_id
