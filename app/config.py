@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     """Batch size for embedding generation. Adjust based on your system's memory and performance."""
 
     DEFAULT_INPUT_TYPE: str = "passage"
-    """Default E5 prefix input type for unprefixed embeddings: passage or query."""
+    """Default E5 prefix input type for unprefixed embeddings: passage, query, or auto."""
 
 
 settings = Settings()

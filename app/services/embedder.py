@@ -8,7 +8,24 @@ from app.config import settings
 from app.services.custom_models import register_custom_models
 
 InputType = Literal["passage", "query"]
+DefaultInputType = Literal["passage", "query", "auto"]
 SUPPORTED_INPUT_TYPES: set[str] = {"passage", "query"}
+SUPPORTED_DEFAULT_INPUT_TYPES: set[str] = {*SUPPORTED_INPUT_TYPES, "auto"}
+QUERY_HINTS = {
+    "де",
+    "как",
+    "коли",
+    "кто",
+    "куда",
+    "навіщо",
+    "почему",
+    "сколько",
+    "що",
+    "что",
+    "чому",
+    "який",
+    "яка",
+}
 
 register_custom_models()
 
@@ -76,11 +93,11 @@ class EmbeddingResult(BaseModel):
 
 def resolve_model_request(
     requested_model: str, requested_input_type: InputType | None = None
-) -> tuple[str, InputType]:
+) -> tuple[str, InputType | None]:
     """Resolve optional model suffix aliases like model:query or model:passage."""
 
     model_id = requested_model
-    input_type = requested_input_type or _default_input_type()
+    input_type = requested_input_type
 
     for separator in (":", "#"):
         if separator not in requested_model:
@@ -91,7 +108,11 @@ def resolve_model_request(
             input_type = maybe_input_type
             break
 
-    if input_type not in SUPPORTED_INPUT_TYPES:
+    if input_type is None:
+        default_input_type = _default_input_type()
+        input_type = None if default_input_type == "auto" else default_input_type
+
+    if input_type is not None and input_type not in SUPPORTED_INPUT_TYPES:
         raise ValueError(
             f"Invalid input_type '{input_type}'. Expected one of {sorted(SUPPORTED_INPUT_TYPES)}"
         )
@@ -99,29 +120,60 @@ def resolve_model_request(
     return model_id, input_type
 
 
-def _default_input_type() -> InputType:
+def _default_input_type() -> DefaultInputType:
     default_input_type = settings.DEFAULT_INPUT_TYPE
-    if default_input_type not in SUPPORTED_INPUT_TYPES:
+    if default_input_type not in SUPPORTED_DEFAULT_INPUT_TYPES:
         raise ValueError(
             f"Invalid DEFAULT_INPUT_TYPE '{default_input_type}'. "
-            f"Expected one of {sorted(SUPPORTED_INPUT_TYPES)}"
+            f"Expected one of {sorted(SUPPORTED_DEFAULT_INPUT_TYPES)}"
         )
     return default_input_type
+
+
+def _effective_input_type(input_type: InputType | None) -> InputType | None:
+    if input_type is not None:
+        return input_type
+    default_input_type = _default_input_type()
+    return None if default_input_type == "auto" else default_input_type
 
 
 def _is_e5_model(model_id: str) -> bool:
     return "e5" in model_id.lower()
 
 
-def _apply_e5_prefix(text: str, input_type: InputType) -> str:
+def _looks_like_query(text: str) -> bool:
+    stripped = text.strip()
+    if not stripped:
+        return False
+    if stripped.endswith("?"):
+        return True
+
+    first_word = stripped.split(maxsplit=1)[0].lower().strip("¿?!.,:;\"'()[]{}")
+    if first_word in QUERY_HINTS:
+        return True
+
+    return (
+        len(stripped) <= 160
+        and stripped.count("\n") == 0
+        and len(stripped.split()) <= 16
+    )
+
+
+def _resolve_text_input_type(text: str, input_type: InputType | None) -> InputType:
+    if input_type is not None:
+        return input_type
+    return "query" if _looks_like_query(text) else "passage"
+
+
+def _apply_e5_prefix(text: str, input_type: InputType | None) -> str:
     stripped = text.lstrip()
     if stripped.startswith("query:") or stripped.startswith("passage:"):
         return text
-    return f"{input_type}: {text}"
+    return f"{_resolve_text_input_type(text, input_type)}: {text}"
 
 
 def _prepare_texts(
-    texts: Iterable[str] | str, model_id: str, input_type: InputType
+    texts: Iterable[str] | str, model_id: str, input_type: InputType | None
 ) -> Iterable[str] | str:
     if isinstance(texts, str):
         return _apply_e5_prefix(texts, input_type) if _is_e5_model(model_id) else texts
@@ -145,7 +197,7 @@ def embed_text(
 
     try:
         prepared_texts = _prepare_texts(
-            texts, model_id, input_type or _default_input_type()
+            texts, model_id, _effective_input_type(input_type)
         )
 
         # model.embed natively batches an iterable of documents giving an iterable of numpy arrays
