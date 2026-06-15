@@ -12,19 +12,56 @@ DefaultInputType = Literal["passage", "query", "auto"]
 SUPPORTED_INPUT_TYPES: set[str] = {"passage", "query"}
 SUPPORTED_DEFAULT_INPUT_TYPES: set[str] = {*SUPPORTED_INPUT_TYPES, "auto"}
 QUERY_HINTS = {
-    "де",
+    "где",
     "как",
-    "коли",
+    "когда",
     "кто",
     "куда",
-    "навіщо",
+    "зачем",
     "почему",
     "сколько",
-    "що",
     "что",
+    "чем",
+    "какой",
+    "какая",
+    "какое",
+    "какие",
+    "найди",
+    "покажи",
+    "расскажи",
+    "объясни",
+    "дай",
+    "де",
+    "як",
+    "коли",
+    "хто",
+    "куди",
+    "навіщо",
     "чому",
+    "скільки",
+    "що",
+    "чим",
     "який",
     "яка",
+    "яке",
+    "які",
+    "знайди",
+    "покажи",
+    "розкажи",
+    "поясни",
+    "дай",
+    "where",
+    "how",
+    "when",
+    "who",
+    "why",
+    "what",
+    "which",
+    "find",
+    "show",
+    "explain",
+    "tell",
+    "give",
 }
 
 register_custom_models()
@@ -152,11 +189,7 @@ def _looks_like_query(text: str) -> bool:
     if first_word in QUERY_HINTS:
         return True
 
-    return (
-        len(stripped) <= 160
-        and stripped.count("\n") == 0
-        and len(stripped.split()) <= 16
-    )
+    return False
 
 
 def _resolve_text_input_type(text: str, input_type: InputType | None) -> InputType:

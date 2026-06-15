@@ -57,6 +57,16 @@ def test_e5_auto_prefix_treats_long_text_as_passage(monkeypatch):
     assert calls == [[f"passage: {text}"]]
 
 
+def test_e5_auto_prefix_treats_short_memory_statement_as_passage(monkeypatch):
+    calls = stub_model(monkeypatch)
+    text = "User prefers Romanian examples with Cyrillic explanations"
+    monkeypatch.setattr(embedder.settings, "DEFAULT_INPUT_TYPE", "auto")
+
+    embedder.embed_text([text], model_id="intfloat/multilingual-e5-large")
+
+    assert calls == [[f"passage: {text}"]]
+
+
 def test_e5_explicit_input_type_overrides_auto_default(monkeypatch):
     calls = stub_model(monkeypatch)
     monkeypatch.setattr(embedder.settings, "DEFAULT_INPUT_TYPE", "auto")
